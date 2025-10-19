@@ -4,6 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>災情回報查看</title>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js";
+
+    // Firebase 設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyA4IZ6yZxlOuIjarWmUtIHGyLk84056K2Q",
+      authDomain: "reportsystem-c5fc7.firebaseapp.com",
+      projectId: "reportsystem-c5fc7",
+      storageBucket: "reportsystem-c5fc7.firebasestorage.app",
+      messagingSenderId: "845064058181",
+      appId: "1:845064058181:web:31d2f0fa6dfed084befa2c",
+      measurementId: "G-EDQM0LWQWH"
+    };
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    // 將 Firebase 功能暴露給全局使用
+    window.firebaseStorage = { storage, ref, listAll, getDownloadURL };
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -68,17 +91,13 @@
       border-radius: 8px;
       margin-bottom: 25px;
     }
-    .loading {
+    .loading, .error {
       text-align: center;
       padding: 40px;
       font-size: 18px;
-      color: #666;
     }
     .error {
-      text-align: center;
-      padding: 40px;
       color: #d32f2f;
-      font-size: 18px;
     }
     .modal {
       display: none;
@@ -127,7 +146,10 @@
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index.html'">← 返回表單</button>
+    <!-- 返回按鈕 - 根據來源顯示不同文字 -->
+    <button class="back-btn" id="backButton" onclick="handleBack()" style="display: none;">
+      ← 載入中...
+    </button>
     
     <div class="header">
       <h1>災情回報詳細內容</h1>
@@ -136,8 +158,7 @@
 
     <div class="report-info">
       <h3>回報資訊</h3>
-      <p id="location">位置：載入中...</p>
-      <p id="disaster-type">災害類型：載入中...</p>
+      <p id="report-id">報告ID：載入中...</p>
       <p id="remarks">備註：載入中...</p>
     </div>
 
@@ -168,61 +189,165 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby4U0qeaPRGVCopuogHvRi3ngkIvUhF2yrSc8Eo3VhML3WyBlgej0YVqRfFjBXRgsUN0Q/exec';
-    
     let currentIndex = 0;
     let currentPhotoUrls = [];
     let currentReportId = '';
+    let pageSource = ''; // 記錄頁面來源
 
     // 頁面載入時載入報告數據
     document.addEventListener('DOMContentLoaded', function() {
       const urlParams = new URLSearchParams(window.location.search);
       const reportId = urlParams.get('id');
+      pageSource = urlParams.get('source'); // 獲取來源參數
       
       if (reportId) {
         currentReportId = reportId;
+        
+        // 設置返回按鈕
+        setupBackButton();
+        
         loadReportData(reportId);
       } else {
-        document.getElementById('photo-gallery').innerHTML = 
-          '<div class="error">錯誤：未提供報告ID</div>';
+        showError('錯誤：未提供報告ID');
       }
     });
 
-    // 載入報告數據
+    // 設置返回按鈕
+    function setupBackButton() {
+      const backButton = document.getElementById('backButton');
+      backButton.style.display = 'block';
+      
+      if (pageSource === 'form') {
+        // 從表單提交過來的 - 顯示「返回表單」
+        backButton.innerHTML = '← 返回表單';
+      } else {
+        // 直接通過連結訪問的 - 顯示「返回」
+        backButton.innerHTML = '← 返回';
+      }
+    }
+
+    // 處理返回操作
+    function handleBack() {
+      if (pageSource === 'form') {
+        // 從表單來的：返回表單頁面
+        window.location.href = 'index.html';
+      } else {
+        // 從其他連結來的：返回上一頁
+        if (document.referrer && document.referrer.includes(window.location.hostname)) {
+          // 有上一頁且來自同域名，返回上一頁
+          window.history.back();
+        } else {
+          // 沒有上一頁或來自外部，返回首頁或關閉
+          window.location.href = 'index.html';
+        }
+      }
+    }
+
+    // 直接從Firebase載入報告數據
     async function loadReportData(reportId) {
       try {
-        const response = await fetch(`${WEB_APP_URL}?action=getReport&id=${reportId}`);
-        const reportData = await response.json();
+        // 顯示報告基本信息
+        document.getElementById('report-id').textContent = `報告ID：${reportId}`;
+        document.getElementById('report-date').textContent = `回報時間：${formatDateFromId(reportId)}`;
         
-        if (reportData.result === 'success') {
-          // 顯示報告信息
-          document.getElementById('report-date').textContent = `回報時間：${reportData.date} ${reportData.time}`;
-          document.getElementById('location').textContent = `位置：${reportData.location}`;
-          document.getElementById('disaster-type').textContent = `災害類型：${reportData.disasterType}`;
-          document.getElementById('remarks').textContent = `備註：${reportData.remarks}`;
-          
-          // 顯示照片
-          if (reportData.photoUrl && reportData.photoUrl !== '') {
-            const photoUrls = reportData.photoUrl.split(',');
-            displayPhotos(photoUrls);
-          } else {
-            document.getElementById('photo-gallery').innerHTML = '<p>此回報沒有照片</p>';
+        // 從Firebase載入照片
+        await loadPhotosFromFirebase(reportId);
+        
+        // 從Firebase載播音頻
+        await loadAudioFromFirebase(reportId);
+        
+      } catch (error) {
+        console.error('從Firebase載入數據失敗:', error);
+        showError('載入數據失敗，請稍後再試。');
+      }
+    }
+
+    // 從報告ID解析日期
+    function formatDateFromId(reportId) {
+      try {
+        // 假設reportId格式為: report_1700000000000
+        const timestamp = parseInt(reportId.replace('report_', ''));
+        if (!isNaN(timestamp)) {
+          const date = new Date(timestamp);
+          return date.toLocaleString('zh-TW');
+        }
+      } catch (e) {
+        console.error('解析日期失敗:', e);
+      }
+      return '未知時間';
+    }
+
+    // 從Firebase載入照片
+    async function loadPhotosFromFirebase(reportId) {
+      try {
+        const { ref, listAll, getDownloadURL } = window.firebaseStorage;
+        const storageRef = ref(window.firebaseStorage.storage, `reports/${reportId}/`);
+        
+        // 列出所有文件
+        const result = await listAll(storageRef);
+        
+        // 過濾出照片文件
+        const photoFiles = result.items.filter(item => 
+          item.name.startsWith('photo_') && 
+          (item.name.endsWith('.jpg') || item.name.endsWith('.jpeg') || item.name.endsWith('.png'))
+        );
+        
+        if (photoFiles.length === 0) {
+          document.getElementById('photo-gallery').innerHTML = '<p>此回報沒有照片</p>';
+          return;
+        }
+        
+        // 獲取所有照片的URL
+        const photoUrls = [];
+        for (const file of photoFiles) {
+          const url = await getDownloadURL(file);
+          photoUrls.push(url);
+        }
+        
+        // 顯示照片
+        displayPhotos(photoUrls);
+        
+      } catch (error) {
+        console.error('載入照片失敗:', error);
+        document.getElementById('photo-gallery').innerHTML = '<p>載入照片失敗</p>';
+      }
+    }
+
+    // 從Firebase載播音頻
+    async function loadAudioFromFirebase(reportId) {
+      try {
+        const { ref, getDownloadURL } = window.firebaseStorage;
+        
+        // 嘗試尋找音頻文件
+        const audioExtensions = ['.webm', '.mp3', '.wav', '.m4a'];
+        let audioUrl = null;
+        
+        for (const ext of audioExtensions) {
+          try {
+            const audioRef = ref(window.firebaseStorage.storage, `reports/${reportId}/recording${ext}`);
+            audioUrl = await getDownloadURL(audioRef);
+            break;
+          } catch (e) {
+            // 繼續嘗試下一個擴展名
+            continue;
           }
-          
-          // 顯示音頻（如果存在）
-          if (reportData.audioUrl) {
-            document.getElementById('audio-section').style.display = 'block';
-            document.getElementById('audio-player').src = reportData.audioUrl;
-          }
-        } else {
-          throw new Error(reportData.message || '無法載入報告數據');
+        }
+        
+        if (audioUrl) {
+          document.getElementById('audio-section').style.display = 'block';
+          document.getElementById('audio-player').src = audioUrl;
         }
         
       } catch (error) {
-        console.error('加載報告數據失敗:', error);
-        document.getElementById('photo-gallery').innerHTML = 
-          '<div class="error">加載數據失敗，請稍後再試。</div>';
+        console.error('載播音頻失敗:', error);
+        // 音頻不是必須的，所以不顯示錯誤
       }
+    }
+
+    // 顯示錯誤訊息
+    function showError(message) {
+      document.getElementById('photo-gallery').innerHTML = 
+        `<div class="error">${message}</div>`;
     }
 
     // 顯示照片

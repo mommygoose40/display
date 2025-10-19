@@ -146,7 +146,10 @@
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index.html'">← 返回表單</button>
+    <!-- 返回按鈕 - 根據來源顯示不同文字 -->
+    <button class="back-btn" id="backButton" onclick="handleBack()" style="display: none;">
+      ← 載入中...
+    </button>
     
     <div class="header">
       <h1>災情回報詳細內容</h1>
@@ -189,19 +192,56 @@
     let currentIndex = 0;
     let currentPhotoUrls = [];
     let currentReportId = '';
+    let pageSource = ''; // 記錄頁面來源
 
     // 頁面載入時載入報告數據
     document.addEventListener('DOMContentLoaded', function() {
       const urlParams = new URLSearchParams(window.location.search);
       const reportId = urlParams.get('id');
+      pageSource = urlParams.get('source'); // 獲取來源參數
       
       if (reportId) {
         currentReportId = reportId;
+        
+        // 設置返回按鈕
+        setupBackButton();
+        
         loadReportData(reportId);
       } else {
         showError('錯誤：未提供報告ID');
       }
     });
+
+    // 設置返回按鈕
+    function setupBackButton() {
+      const backButton = document.getElementById('backButton');
+      backButton.style.display = 'block';
+      
+      if (pageSource === 'form') {
+        // 從表單提交過來的 - 顯示「返回表單」
+        backButton.innerHTML = '← 返回表單';
+      } else {
+        // 直接通過連結訪問的 - 顯示「返回」
+        backButton.innerHTML = '← 返回';
+      }
+    }
+
+    // 處理返回操作
+    function handleBack() {
+      if (pageSource === 'form') {
+        // 從表單來的：返回表單頁面
+        window.location.href = 'index.html';
+      } else {
+        // 從其他連結來的：返回上一頁
+        if (document.referrer && document.referrer.includes(window.location.hostname)) {
+          // 有上一頁且來自同域名，返回上一頁
+          window.history.back();
+        } else {
+          // 沒有上一頁或來自外部，返回首頁或關閉
+          window.location.href = 'index.html';
+        }
+      }
+    }
 
     // 直接從Firebase載入報告數據
     async function loadReportData(reportId) {
