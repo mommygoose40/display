@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>防汛通報系統</title>
+  <title>災情回報查看</title>
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
@@ -227,14 +227,16 @@
     </button>
     
     <div class="header">
-      <h1>通報詳細紀錄</h1>
+      <h1>災情回報詳細內容</h1>
       <p id="report-date">回報時間：載入中...</p>
     </div>
 
     <div class="report-info">
+  <h3>回報資訊</h3>
+  <p id="report-id">報告ID：載入中...</p>
   <p id="report-type">通報類型：載入中...</p>
   <p id="report-status">狀態：載入中...</p>
-  <p id="abnormal-type" style="display: none;">異常類型：載入中...</p>
+  <p id="abnormal-type">異常類型：載入中...</p>
   <p id="remarks">說明：載入中...</p>
   <p id="transcription-summary">語音轉文字：載入中...</p>
   <p id="reporter">回報者：載入中...</p>
@@ -251,7 +253,7 @@
 
     <div id="audio-section" style="display: none;">
       <div class="audio-player">
-        <h3>語音</h3>
+        <h3>語音回報</h3>
         <audio id="audio-player" controls>
           您的瀏覽器不支持音頻播放功能。
         </audio>
@@ -353,13 +355,7 @@
       try {
         document.getElementById('report-type').textContent = `通報類型：${data.type || '未填寫'}`;
 document.getElementById('report-status').textContent = `狀態：${data.status || '未填寫'}`;
-
-if (data.status === '異常') {
-  document.getElementById('abnormal-type').style.display = 'block';
-  document.getElementById('abnormal-type').textContent = `異常類型：${data.abnormalType || '未指定'}`;
-} else {
-  document.getElementById('abnormal-type').style.display = 'none';
-}
+document.getElementById('abnormal-type').textContent = `異常類型：${data.abnormalType || '無'}`;
 document.getElementById('remarks').textContent = `說明：${data.remarks || '未提供'}`;
 document.getElementById('transcription-summary').textContent = `語音轉文字：${data.transcriptionSummary || '無'}`;
 document.getElementById('reporter').textContent = `回報者：${data.reporter || '未提供'}`;
