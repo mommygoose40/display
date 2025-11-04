@@ -100,29 +100,15 @@
     let currentIndex = 0, currentPhotoUrls = [], currentReportId = '', pageSource = '';
 
     document.addEventListener('DOMContentLoaded', () => {
-  // 先讀 LocalStorage 暫存資料
-  const temp = localStorage.getItem('tempReportData');
-  if (temp) {
-    try {
-      const data = JSON.parse(temp);
-      console.log('⚡ 顯示暫存資料:', data);
-      handleResponse(data); // 直接用現有 handleResponse 填入資料
-    } catch (e) {
-      console.warn('暫存資料解析失敗:', e);
-    }
-    localStorage.removeItem('tempReportData'); // 用完清除
-  }
-
-  // === 原本的流程繼續執行 ===
-  const urlParams = new URLSearchParams(window.location.search);
-  const reportId = urlParams.get('id');
-  pageSource = urlParams.get('source');
-  if (reportId) {
-    currentReportId = reportId;
-    setupBackButton();
-    loadReportData(reportId); // 幾秒後自動抓正式資料
-  } else showError('錯誤：未提供報告ID');
-});
+      const urlParams = new URLSearchParams(window.location.search);
+      const reportId = urlParams.get('id');
+      pageSource = urlParams.get('source');
+      if (reportId) {
+        currentReportId = reportId;
+        setupBackButton();
+        loadReportData(reportId);
+      } else showError('錯誤：未提供報告ID');
+    });
 
     function setupBackButton() {
       const btn = document.getElementById('backButton');
