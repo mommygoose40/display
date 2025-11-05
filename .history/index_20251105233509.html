@@ -175,38 +175,11 @@
         background: #0b5ed7;
         transition: width 0.1s ease;
     }
-    .page-close-btn {
-  position: fixed;
-  top: 25px;
-  left: 25px;
-  width: 50px;
-  height: 50px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 36px;
-  font-weight: bold;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 999;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.page-close-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
-}
 </style>
 </head>
 
 <body>
   <div class="container">
-    <!-- 新增頁面左上角關閉按鈕 -->
-  <div class="page-close-btn" onclick="closePage()">&times;</div>
-
     <button class="back-btn" id="backButton" onclick="handleBack()" style="display: none;">← 載入中...</button>
 
     <div class="header">
@@ -684,17 +657,6 @@ document.addEventListener('keydown', function(e) {
       width:0;height:0;border-top:9px solid transparent;
       border-bottom:9px solid transparent;border-left:16px solid #fff;margin-left:3px;
     "></div>`;
-  }
-}
-
-function closePage() {
-  // 根據來源決定關閉行為
-  if (pageSource === 'form') {
-    location.href = 'https://report-tan-tau.vercel.app/';
-  } else if (document.referrer && document.referrer.includes(location.hostname)) {
-    history.back();
-  } else {
-    location.href = 'https://report-tan-tau.vercel.app/';
   }
 }
   </script>
