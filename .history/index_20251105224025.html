@@ -51,40 +51,7 @@
     .download-link:hover { text-decoration: underline; }
     .error { text-align: center; color: #d32f2f; font-size: 18px; padding: 40px; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-    .modal-content {
-  display: block;
-  margin: auto;
-  max-width: 90%;
-  max-height: 80%;
-  margin-top: 40px;
-  cursor: pointer; /* 顯示可點擊 */
-  transition: transform 0.2s ease;
-}
-
-.modal-content:hover {
-  transform: scale(1.02); /* 懸停效果 */
-}
-
-/* 可以添加左右區域的視覺提示 */
-.modal::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  cursor: w-resize; /* 左箭頭游標 */
-}
-
-.modal::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  cursor: e-resize; /* 右箭頭游標 */
-}
+    .modal-content { display: block; margin: auto; max-width: 90%; max-height: 80%; margin-top: 40px; }
     .close { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
     .navigation { position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); }
     .nav-btn { background: rgba(0,0,0,0.5); color: white; border: none; padding: 15px; font-size: 24px; cursor: pointer; }
@@ -392,55 +359,18 @@
 }
 
     function openModal(i, urls) {
-  currentIndex = i; 
-  currentPhotoUrls = urls;
-  const m = document.getElementById('image-modal');
-  document.getElementById('modal-image').src = urls[i];
-  m.style.display = 'block';
-  
-  // 添加點擊圖片任意位置切換功能
-  const modalImg = document.getElementById('modal-image');
-  modalImg.onclick = function(e) {
-    e.stopPropagation(); // 防止事件冒泡
-    const rect = this.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    
-    // 點擊左半邊：上一張，點擊右半邊：下一張
-    if (clickX < width / 2) {
-      navigatePhoto(-1);
-    } else {
-      navigatePhoto(1);
+      currentIndex = i; currentPhotoUrls = urls;
+      const m = document.getElementById('image-modal');
+      document.getElementById('modal-image').src = urls[i];
+      m.style.display = 'block';
     }
-  };
-}
-
-function closeModal() { 
-  document.getElementById('image-modal').style.display = 'none'; 
-}
-
-function navigatePhoto(d) {
-  if (d === -1 && currentIndex > 0) {
-    currentIndex--;
-  } else if (d === 1 && currentIndex < currentPhotoUrls.length - 1) {
-    currentIndex++;
-  }
-  document.getElementById('modal-image').src = currentPhotoUrls[currentIndex];
-}
-
-// 添加鍵盤左右鍵支援
-document.addEventListener('keydown', function(e) {
-  const modal = document.getElementById('image-modal');
-  if (modal.style.display === 'block') {
-    if (e.key === 'ArrowLeft') {
-      navigatePhoto(-1);
-    } else if (e.key === 'ArrowRight') {
-      navigatePhoto(1);
-    } else if (e.key === 'Escape') {
-      closeModal();
+    function closeModal() { document.getElementById('image-modal').style.display = 'none'; }
+    function navigatePhoto(d) {
+      if (d === -1 && currentIndex > 0) currentIndex--;
+      else if (d === 1 && currentIndex < currentPhotoUrls.length - 1) currentIndex++;
+      document.getElementById('modal-image').src = currentPhotoUrls[currentIndex];
     }
-  }
-});
+    window.onclick = e => { if (e.target === document.getElementById('image-modal')) closeModal(); };
 
     let playbackAudio, rafId;
 
