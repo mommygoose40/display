@@ -110,27 +110,27 @@
     <button class="back-btn" id="backButton" onclick="handleBack()" style="display: none;">← 載入中...</button>
 
     <div class="header">
-  <h1>通報詳細紀錄</h1>
-  <p id="report-date" style="color:#666;">回報時間：載入中...</p>
-</div>
+      <h1>通報詳細紀錄</h1>
+      <p id="report-date">回報時間：載入中...</p>
+    </div>
 
-<div class="report-info">
-  <p id="report-type" style="color:#666;">通報類型：載入中...</p>
-  <p id="report-status" style="color:#666;">狀態：載入中...</p>
-  <p id="abnormal-type" style="display:none;color:#666;">異常分類：載入中...</p>
-  <p id="remarks" style="color:#666;">說明：載入中...</p>
-  <p id="transcription-summary" style="display:none;color:#666;">語音轉文字：載入中...</p>
-  <p id="reporter" style="color:#666;">回報者：載入中...</p>
-  <p id="companions" style="color:#666;">同行者：載入中...</p>
-  <p id="team" style="color:#666;">所屬大隊：載入中...</p>
-</div>
+    <div class="report-info">
+      <p id="report-type">通報類型：載入中...</p>
+      <p id="report-status">狀態：載入中...</p>
+      <p id="abnormal-type" style="display:none;">異常分類：載入中...</p>
+      <p id="remarks">說明：載入中...</p>
+      <p id="transcription-summary" style="display:none;">語音轉文字：載入中...</p>
+      <p id="reporter">回報者：載入中...</p>
+      <p id="companions">同行者：載入中...</p>
+      <p id="team">所屬大隊：載入中...</p>
+    </div>
 
     <div id="photo-section">
       <h2>照片</h2>
       <div id="photo-gallery" class="photo-gallery">
         <div class="loading-container">
           <div class="loading-spinner"></div>
-          <span class="loading-text">照片載入中...</span>
+          <span class="loading-text">載入照片中...</span>
         </div>
       </div>
     </div>
@@ -231,16 +231,8 @@
     }
 
     function handleResponse(data) {
-  console.log('📥 JSONP 取得:', data);
-  if (!data || data.error) return showError('查無此報告資料');
-
-  // 移除灰色，改回正常顏色
-  const elements = ['report-type', 'report-status', 'abnormal-type', 'remarks', 
-                   'transcription-summary', 'reporter', 'companions', 'team'];
-  elements.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.color = '';
-  });
+      console.log('📥 JSONP 取得:', data);
+      if (!data || data.error) return showError('查無此報告資料');
 
       document.getElementById('report-type').innerHTML = `通報類型：${data['通報類型'] || '無'}`;
       document.getElementById('report-status').innerHTML = `狀態：${data['狀態'] || '無'}`;
