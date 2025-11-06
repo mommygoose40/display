@@ -790,6 +790,17 @@ let visualScale = 1; // 顯示用比例
   updateZoomIndicator();
 };
 
+  // 但設定 currentScale 和視覺比例時使用與 resetZoom 相同的邏輯
+  visualScale = 1;
+  currentScale = baseScale;  // 使用 baseScale 而不是 1
+  currentTranslateX = 0;
+  currentTranslateY = 0;
+  isZoomed = false;
+
+  applyTransform();
+  updateZoomIndicator();
+};
+
   updateModalNavButtons();
   setupTouchZoom(modalImg);
   setupSwipeNavigation(modalContainer);
