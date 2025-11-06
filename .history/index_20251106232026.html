@@ -844,31 +844,22 @@ let visualScale = 1; // 顯示用比例
   const container = document.getElementById('modalContainer');
   const oldScale = currentScale;
 
-  // 第一次放大時計算「顯示倍率校正」
+  // 以實際畫面比例為基準
   if (!baseScale || baseScale === 0) {
     const shownWidth = modalImg.getBoundingClientRect().width;
-    const shownHeight = modalImg.getBoundingClientRect().height;
-    const naturalW = modalImg.naturalWidth;
-    const naturalH = modalImg.naturalHeight;
-    // 目前畫面實際顯示相對原圖的比例
-    baseScale = Math.min(shownWidth / naturalW, shownHeight / naturalH);
-    // 讓這個比例成為 scale(1) 的基準
+    baseScale = shownWidth / modalImg.naturalWidth;
     currentScale = 1;
     visualScale = 1;
   }
 
-  // 每次變化 5%
+  // 以目前顯示比例為起點，每次變動 5%
   const step = 0.05;
   const factor = direction > 0 ? 1 + step : 1 - step;
-  visualScale = Math.max(1, Math.min(2.0, visualScale * factor));
+  visualScale *= factor;
+  visualScale = Math.max(1, Math.min(2.0, visualScale)); // 限制 1~2倍
+  currentScale = visualScale;
 
-  // 實際套用時的縮放 = 校正基準 * 視覺比例
-  const newScale = baseScale * visualScale;
-
-  if (Math.abs(newScale - oldScale) < 0.0001) return;
-  currentScale = newScale;
-
-  // 以滑鼠點或中央為焦點縮放
+  // 計算縮放中心
   const rect = container.getBoundingClientRect();
   const imgRect = modalImg.getBoundingClientRect();
   const cx = clientX ?? rect.left + rect.width / 2;
