@@ -187,12 +187,10 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
     }
 
     .modal-content.zoomed {
-    cursor: grab;
-    max-width: none !important;
-    max-height: none !important;
-    width: auto !important;
-    height: auto !important;
-}
+        cursor: grab;
+        max-width: none;
+        max-height: none;
+    }
 
     .modal-content.zoomed:active {
         cursor: grabbing;
@@ -827,18 +825,19 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
   const cx = clientX ?? rect.left + rect.width / 2;
   const cy = clientY ?? rect.top + rect.height / 2;
 
-  // 以容器中心為穩定基準，不依賴 transform 後的大小
+  // 直接用容器中心作基準，不取 transform 後的 imgRect
   const containerCenterX = rect.left + rect.width / 2;
   const containerCenterY = rect.top + rect.height / 2;
   const offsetX = cx - containerCenterX;
   const offsetY = cy - containerCenterY;
 
+  // 更新縮放狀態
   currentTranslateX -= offsetX * (newScale / oldScale - 1);
   currentTranslateY -= offsetY * (newScale / oldScale - 1);
   currentScale = newScale;
   isZoomed = currentScale > 1.0;
-
   modalImg.classList.toggle('zoomed', isZoomed);
+
   applyTransform();
   updateZoomIndicator();
 }
