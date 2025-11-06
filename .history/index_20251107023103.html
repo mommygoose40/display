@@ -808,23 +808,6 @@ let visualScale = 1; // 顯示用比例
     modalImg.removeEventListener('wheel', handleWheelZoom);
     modalImg.addEventListener('wheel', handleWheelZoom);
 
-    // 電腦版：只有左右30%區域可以點擊切換
-if (window.innerWidth > 768) {
-    modalContainer.onclick = function(e) {
-        if (isZoomed) return;
-        
-        const rect = this.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const width = rect.width;
-        
-        if (clickX < width * 0.3) {
-            navigatePhoto(-1);
-        } else if (clickX > width * 0.7) {
-            navigatePhoto(1);
-        }
-    };
-}
-
     // 手機縮放支持
     setupTouchZoom(modalImg);
 
@@ -1095,10 +1078,19 @@ function handlePinchZoom(newScale, cx, cy) {
         resetZoom();
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelector('.nav-btn:nth-child(1)').onclick = function() { navigatePhoto(-1); };
-        document.querySelector('.nav-btn:nth-child(2)').onclick = function() { navigatePhoto(1); };
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+    const modalContainer = document.getElementById('modalContainer');
+
+    // 僅在電腦端啟用背景點擊切換圖片
+    if (window.innerWidth >= 769) {
+        modalContainer.addEventListener('click', (e) => {
+            // 防止點擊圖片本身切換
+            if (e.target !== document.getElementById('modal-image')) {
+                navigatePhoto(1); // 向左切換至下一張圖片
+            }
+        });
+    }
+});
 
     document.addEventListener('keydown', function(e) {
         const modal = document.getElementById('image-modal');
