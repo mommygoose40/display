@@ -612,12 +612,6 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
     font-size: 18px;
   }
 }
-
-@media (max-width: 768px) {
-  #transcription-section {
-    display: block !important;
-  }
-}
 </style>
 </head>
 
@@ -672,7 +666,7 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
       </div>
     </div>
 
-    <div id="transcription-section" class="transcription-section">
+    <div id="transcription-section" class="transcription-section" style="display:none;">
   <h3>語音轉文字結果</h3>
   <div id="transcription-text" class="transcription-text" contenteditable="true"></div>
   <div style="margin-top: 15px;">
