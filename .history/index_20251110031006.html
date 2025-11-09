@@ -1813,6 +1813,20 @@ function handlePinchZoom(newScale, cx, cy) {
   });
 }
 
+  // 回復原狀
+  resetBtn.addEventListener('click', () => {
+    transcriptionElement.textContent = originalText;
+    resetBtn.classList.add('active');
+    saveBtn.classList.remove('active');
+  });
+
+  // 監聽輸入變動：輸入任何文字就自動恢復深色狀態（代表未儲存）
+  transcriptionElement.addEventListener('input', () => {
+    saveBtn.classList.remove('active');
+    resetBtn.classList.remove('active');
+  });
+}
+
 async function saveTranscriptionToServer(reportId, newText) {
   try {
     const url = `https://script.google.com/macros/s/AKfycbxXn3aXlD3J1i_3ykJ92leI4PDIyO7QblzpXN6cIO0EDsA-CLC_PqT7sPEzJfDJwk-QgQ/exec`;
