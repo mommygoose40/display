@@ -800,12 +800,13 @@ let hasUserZoomed = false;
     await loadReportInfoFromSheet(reportId);
     await loadPhotosFromFirebase(reportId);
 
-    // 語音載入完成後才顯示相關區塊
+    // 等語音載完後再顯示語音與文字框
     const hasAudio = await loadAudioFromFirebase(reportId);
     if (hasAudio) {
       document.getElementById('audio-section').style.display = 'block';
       document.getElementById('transcription-section').style.display = 'block';
     } else {
+      // 若無語音，隱藏轉文字區塊
       document.getElementById('audio-section').style.display = 'none';
       document.getElementById('transcription-section').style.display = 'none';
     }
@@ -849,9 +850,9 @@ const transcriptionSection = document.getElementById('transcription-section');
 const transcriptionText = document.getElementById('transcription-text');
 const transcriptionValue = data['語音轉文字'] || '';
 
+transcriptionSection.style.display = 'block';
 transcriptionText.textContent = data['語音轉文字'] || '';
 transcriptionText.setAttribute('contenteditable', 'true');
-transcriptionSection.style.display = 'none'; // 先隱藏，等語音載入再顯示
 
 setupTranscriptionEditing(currentReportId);
     }
@@ -1700,7 +1701,7 @@ function handlePinchZoom(newScale, cx, cy) {
       resetBtn.classList.remove('active');
 
       // ✅ 呼叫自訂提醒視窗
-      showMessage("修改成功!");
+      showMessage("儲存修改成功！");
     }
   });
 
@@ -1731,7 +1732,7 @@ async function saveTranscriptionToServer(reportId, newText) {
     console.log('✅ 已寫回 Google Sheets：', result);
   } catch (err) {
     console.error('❌ 寫回 Google Sheets 失敗：', err);
-    showMessage('儲存失敗，請稍後再試');
+    alert('儲存失敗，請稍後再試');
   }
 }
 
