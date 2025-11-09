@@ -55,6 +55,16 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
         margin: 8px 0;
     }
     
+    .back-btn { 
+        background: #4285f4; 
+        color: white; 
+        padding: 10px 15px; 
+        border: none; 
+        border-radius: 5px; 
+        cursor: pointer; 
+        margin-bottom: 20px; 
+    }
+    
     .report-info p {
         margin: 8px 0;
         font-size: 20px;
@@ -116,45 +126,6 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
         line-height: 1.5; 
         max-height: 300px; 
         overflow-y: auto; 
-    }
-
-    /* 編輯區域樣式 */
-    .transcription-text[contenteditable="true"] {
-        border: 2px solid #4285f4;
-        background: #f8fbff;
-        min-height: 120px;
-        padding: 15px;
-        border-radius: 8px;
-        outline: none;
-    }
-
-    .transcription-text[contenteditable="true"]:focus {
-        border-color: #0b5ed7;
-        box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-    }
-
-    .save-btn, .reset-btn {
-        background: #4285f4;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-right: 10px;
-        font-size: 16px;
-        transition: background 0.3s ease;
-    }
-
-    .reset-btn {
-        background: #6c757d;
-    }
-
-    .save-btn:hover {
-        background: #0b5ed7;
-    }
-
-    .reset-btn:hover {
-        background: #5a6268;
     }
     
     .download-link { 
@@ -404,18 +375,15 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
         }
         
         .header h1 {
-            font-size: 26px;
-            font-weight: bold;
+            font-size: 24px;
         }
         
         .header p {
-            font-size: 18px;
+            font-size: 16px;
         }
         
         .report-info p {
-            font-size: 20px;
-            line-height: 1.6;
-            margin: 12px 0;
+            font-size: 18px;
         }
         
         .modal-content {
@@ -424,11 +392,9 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
         }
         
         .nav-btn {
-            padding: 20px 15px;
-            font-size: 28px;
-            margin: 0 10px;
-            border-radius: 5px;
-            background: rgba(0,0,0,0.7);
+            padding: 15px 10px;
+            font-size: 20px;
+            margin: 0 5px;
         }
         
         .close {
@@ -443,11 +409,6 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
         .modal-content-container::before,
         .modal-content-container::after {
             display: none;
-        }
-
-        .save-btn, .reset-btn {
-            font-size: 18px;
-            padding: 12px 24px;
         }
     }
 
@@ -467,58 +428,59 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
     }
 
     /* 只調整手機端 */
-    @media (max-width: 768px) {
-        .nav-btn {
-            padding: 20px 15px;
-            font-size: 24px;
-            margin: 0 10px;
-            border-radius: 5px;
-        }
-        
-        .zoom-controls {
-            gap: 16px;
-            padding: 14px 20px;
-            bottom: 25px;
-        }
-        
-        .zoom-btn {
-            width: 44px;
-            height: 44px;
-            font-size: 20px;
-        }
-        
-        /* 回復原狀按鈕 */
-        .zoom-btn.reset {
-            height: 44px;
-            padding: 0 16px;
-            font-size: 20px !important;
-            white-space: nowrap;
-            font-weight: normal;
-        }
-        
-        /* 文字指示器 */
-        .zoom-indicator {
-            min-width: 100px;
-            font-size: 20px !important;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 44px;
-            background: transparent;
-            color: white;
-            border: none;
-            box-shadow: none;
-            cursor: default;
-            pointer-events: none;
-        }
-        
-        /* 手機端隱藏加減按鈕 */
-        .zoom-btn:first-child,
-        .zoom-btn:last-child {
-            display: none;
-        }
+@media (max-width: 768px) {
+    .nav-btn {
+        /* 左右按鈕保持原本大小 */
+        padding: 20px 15px;
+        font-size: 24px;
+        margin: 0 10px;
+        border-radius: 5px;
     }
+    
+    .zoom-controls {
+        gap: 16px;
+        padding: 14px 20px;
+        bottom: 25px;
+    }
+    
+    .zoom-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+    }
+    
+    /* 回復原狀按鈕 */
+    .zoom-btn.reset {
+        height: 44px;
+        padding: 0 16px;
+        font-size: 20px !important;
+        white-space: nowrap;
+        font-weight: normal;
+    }
+    
+    /* 文字指示器 */
+    .zoom-indicator {
+        min-width: 100px;
+        font-size: 20px !important;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        background: transparent;
+        color: white;
+        border: none;
+        box-shadow: none;
+        cursor: default;
+        pointer-events: none;
+    }
+    
+    /* 手機端隱藏加減按鈕 */
+    .zoom-btn:first-child,
+    .zoom-btn:last-child {
+        display: none;
+    }
+}
 
     .zoom-btn {
         background: rgba(255,255,255,0.2);
@@ -537,13 +499,13 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
     }
 
     .zoom-btn.reset {
-        width: auto;
-        padding: 0 15px;
-        border-radius: 22px;
-        font-size: 14px;
-        font-weight: normal;
-        display: none;
-    }
+    width: auto;
+    padding: 0 15px;
+    border-radius: 22px;
+    font-size: 14px;
+    font-weight: normal;
+    display: none; /* 初始隱藏 */
+}
 
     .zoom-btn:hover {
         background: rgba(255,255,255,0.4);
@@ -558,11 +520,6 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
         min-width: 60px;
         font-size: 14px;
         font-weight: bold;
-    }
-
-    /* 移除返回按鈕相關樣式 */
-    .back-btn {
-        display: none !important;
     }
 </style>
 </head>
@@ -624,14 +581,10 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
     </div>
 
     <div id="transcription-section" class="transcription-section" style="display:none;">
-  <h3>🗣️ 語音轉文字結果</h3>
-  <div id="transcription-text" class="transcription-text" contenteditable="true"></div>
-  <div style="margin-top: 15px;">
-    <button id="save-transcription" class="save-btn">💾 儲存修改</button>
-    <button id="reset-transcription" class="reset-btn">↺ 恢復原內容</button>
-  </div>
-  <a id="transcription-download" href="#" class="download-link">📥 下載文字檔</a>
-</div>
+      <h3>🗣️ 語音轉文字結果</h3>
+      <div id="transcription-text" class="transcription-text"></div>
+      <a id="transcription-download" href="#" class="download-link">📥 下載文字檔</a>
+    </div>
 
     <!-- 修改縮放控制按鈕 -->
   <div id="image-modal" class="modal">
@@ -1583,65 +1536,6 @@ function handlePinchZoom(newScale, cx, cy) {
         }, 100);
       }
     }
-
-    // 語音轉文字編輯功能
-let originalTranscription = '';
-
-async function loadTranscriptionFromFirebase(reportId) {
-    try {
-        const { ref, getDownloadURL } = window.firebaseStorage;
-        const tRef = ref(window.firebaseStorage.storage, `reports/${reportId}/transcription.txt`);
-        const url = await getDownloadURL(tRef);
-        const text = await (await fetch(url)).text();
-        
-        document.getElementById('transcription-section').style.display = 'block';
-        const transcriptionElement = document.getElementById('transcription-text');
-        transcriptionElement.textContent = text;
-        originalTranscription = text;
-        
-        // 設定編輯功能
-        transcriptionElement.setAttribute('contenteditable', 'true');
-        
-        document.getElementById('transcription-download').href = url;
-        document.getElementById('transcription-download').download = `transcription_${reportId}.txt`;
-        
-        // 綁定儲存和重置按鈕
-        setupTranscriptionEditing(reportId);
-    } catch (e) {
-        console.log('無語音轉文字檔案');
-    }
-}
-
-function setupTranscriptionEditing(reportId) {
-    const saveBtn = document.getElementById('save-transcription');
-    const resetBtn = document.getElementById('reset-transcription');
-    const transcriptionElement = document.getElementById('transcription-text');
-    
-    saveBtn.addEventListener('click', async () => {
-        const newText = transcriptionElement.textContent;
-        await saveTranscriptionToServer(reportId, newText);
-    });
-    
-    resetBtn.addEventListener('click', () => {
-        transcriptionElement.textContent = originalTranscription;
-        alert('已恢復原始內容');
-    });
-}
-
-async function saveTranscriptionToServer(reportId, newText) {
-    try {
-        // 這裡需要實現將修改後的文字儲存回 Excel 的邏輯
-        // 暫時使用 alert 提示
-        alert('修改已儲存！\n\n（此功能需要後端 API 支援回存到 Excel）');
-        console.log('儲存語音轉文字:', { reportId, newText });
-        
-        // 更新原始內容
-        originalTranscription = newText;
-    } catch (error) {
-        alert('儲存失敗，請稍後再試');
-        console.error('儲存錯誤:', error);
-    }
-}
   </script>
 </body>
 </html>
