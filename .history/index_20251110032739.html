@@ -180,11 +180,6 @@ window.firebaseStorage = { storage, ref, list, listAll, getDownloadURL };
 .reset-btn:hover {
   filter: brightness(1.1);
 }
-
-.save-btn:disabled {
-  background: #aac4f2;
-  cursor: not-allowed;
-}
     
     .download-link { 
         display: inline-block; 
@@ -733,6 +728,7 @@ button, a {
 
    <div id="transcription-section" class="transcription-section">
   <h2>語音轉文字</h2>
+  <p id="edit-hint" style="margin-top:-5px;color:#666;font-size:18px;">（點擊「修改」可編輯內容）</p>
   <div id="transcription-text" class="transcription-text" contenteditable="false"></div>
   <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
     <button id="edit-transcription" class="reset-btn">修改</button>
@@ -1769,13 +1765,10 @@ function handlePinchZoom(newScale, cx, cy) {
   const transcriptionElement = document.getElementById('transcription-text');
   let originalText = transcriptionElement.textContent.trim();
 
-  // 初始狀態
+  // 初始狀態：不可編輯
   transcriptionElement.setAttribute('contenteditable', 'false');
   transcriptionElement.style.background = '#fff';
   transcriptionElement.style.border = '1px solid #ddd';
-  saveBtn.disabled = true;                           // ✅ 一開始禁用儲存
-  saveBtn.style.opacity = '0.6';
-  saveBtn.style.cursor = 'not-allowed';
 
   // === 修改模式 ===
   editBtn.addEventListener('click', () => {
@@ -1789,10 +1782,6 @@ function handlePinchZoom(newScale, cx, cy) {
 
       editBtn.textContent = '取消';
       editBtn.classList.add('active');
-
-      saveBtn.disabled = false;                      // ✅ 啟用儲存
-      saveBtn.style.opacity = '1';
-      saveBtn.style.cursor = 'pointer';
     } else {
       // 取消編輯
       transcriptionElement.setAttribute('contenteditable', 'false');
@@ -1802,19 +1791,13 @@ function handlePinchZoom(newScale, cx, cy) {
 
       editBtn.textContent = '修改';
       editBtn.classList.remove('active');
-
-      saveBtn.disabled = true;                       // ✅ 再次禁用儲存
-      saveBtn.style.opacity = '0.6';
-      saveBtn.style.cursor = 'not-allowed';
     }
   });
 
   // === 儲存 ===
   saveBtn.addEventListener('click', async () => {
-    if (saveBtn.disabled) return;                    // 防呆
-
     const editable = transcriptionElement.getAttribute('contenteditable') === 'true';
-    if (!editable) return;
+    if (!editable) return; // 非編輯狀態按下沒效果
 
     const newText = transcriptionElement.textContent.trim();
     if (newText === originalText) {
@@ -1822,27 +1805,27 @@ function handlePinchZoom(newScale, cx, cy) {
       return;
     }
 
-    showMicLoading(200);
+    showMicLoading(200); // 顯示處理中
     await saveTranscriptionToServer(reportId, newText);
     hideMicLoading();
 
     originalText = newText;
+
+    // 更新上方摘要
     const summary = document.getElementById('transcription-summary');
     if (summary) {
       summary.textContent = `語音轉文字：${newText || '無'}`;
       summary.style.display = 'block';
     }
 
+    // 鎖定文字框
     transcriptionElement.setAttribute('contenteditable', 'false');
     transcriptionElement.style.background = '#fff';
     transcriptionElement.style.border = '1px solid #ddd';
 
+    // 按鈕狀態恢復
     editBtn.textContent = '修改';
     editBtn.classList.remove('active');
-
-    saveBtn.disabled = true;                         // ✅ 儲存完自動禁用
-    saveBtn.style.opacity = '0.6';
-    saveBtn.style.cursor = 'not-allowed';
 
     showMessage('儲存成功！');
   });
