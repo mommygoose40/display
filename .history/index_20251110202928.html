@@ -907,7 +907,8 @@ const transcriptionText = document.getElementById('transcription-text');
 const transcriptionValue = data['語音轉文字'] || '';
 
 transcriptionText.textContent = data['語音轉文字'] || '';
-transcriptionText.setAttribute('contenteditable', 'false'); // ← 改這行
+transcriptionText.setAttribute('contenteditable', 'true');
+
 setupTranscriptionEditing(currentReportId);
     }
 
