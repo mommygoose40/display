@@ -728,22 +728,6 @@ h2 {
   backface-visibility: hidden;
   transform: translateZ(0);
 }
-
-.red-btn {
-  flex: 1;
-  height: 48px;
-  border-radius: 10px;
-  font-size: 20px;
-  background: #d9534f;   /* 紅色 */
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-.red-btn:hover {
-  background: #c9302c;
-  filter: brightness(1.05);
-}
 </style>
 </head>
 
@@ -825,8 +809,8 @@ h2 {
   </div>
 
   <div class="footer-actions">
-  <button class="btn-secondary gray-btn" onclick="handleGoBack()">回上一頁</button>
-  <button class="btn-danger red-btn" onclick="closeWindowSafe()">關閉頁面</button>
+  <button class="btn-secondary gray-btn" id="btnGoBack" onclick="handleGoBack()">回上一頁</button>
+  <button class="btn-secondary gray-btn" id="btnClosePage" onclick="closeWindowSafe()">關閉頁面</button>
 </div>
   </div>
 
