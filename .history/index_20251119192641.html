@@ -2106,11 +2106,18 @@ function hideScreenLock() {
 
 function closeWindowSafe() {
   if (window.liff && window.liff.isInClient()) {
-    // LINE APP 中 → 正確關閉
+    // LINE 內部
     liff.closeWindow();
   } else {
-    // 外部瀏覽器 → 強制跳轉避免回上一頁
-    window.location.href = "about:blank";
+    // 非 LINE browser → 嘗試關閉
+    window.close();
+
+    // 若 window.close() 失敗（部分瀏覽器不允許），跳首頁或上一頁
+    setTimeout(() => {
+      if (!document.hidden) {
+        history.back();
+      }
+    }, 300);
   }
 }
 
