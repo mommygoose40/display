@@ -847,70 +847,6 @@ let currentZoomIndex = 0;
 // 在頂部變數宣告區域添加
 let hasUserZoomed = false;
 
-     // ==========================================================
-// 🚨 請確認：這個新的 JS 區塊是在您的 /detail/index.html 頁面中 🚨
-// ==========================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // 頁面載入時，執行資料載入與顯示
-    loadDetailFromCacheOrServer();
-});
-
-function loadDetailFromCacheOrServer() {
-    const reportId = getReportIdFromUrl(window.location.href);
-    if (!reportId) {
-        return showError('URL 中缺少報告 ID 參數。');
-    }
-    
-    const cacheKey = 'reportListCache';
-    const cachedReportsJson = sessionStorage.getItem(cacheKey);
-
-    if (cachedReportsJson) {
-        try {
-            const cachedReports = JSON.parse(cachedReportsJson);
-            const detailData = cachedReports[reportId];
-            
-            // 檢查快取數據是否存在，且是否包含足夠的資料
-            if (detailData && detailData['狀態'] !== undefined) { 
-                console.log(`✅ [Detail Page] 快取命中，使用 Session Storage 數據。`);
-                
-                // ★★★ 核心步驟：將快取數據傳給您現有的渲染函式 ★★★
-                handleResponse(detailData);
-                
-                // 注意：如果快取數據中不包含音頻連結、圖片連結等，
-                // 這些元素在 handleResponse 運行後將會顯示為空/隱藏。
-                // 由於我們不再有 Fallback，您需要確保列表快取數據是足夠的。
-                return; 
-            }
-        } catch (e) {
-            console.error("解析 Session Storage 數據失敗:", e);
-        }
-    }
-
-    // ★★★ Fallback 邏輯：執行原有的 GAS 請求 ★★★
-    // 只有在快取失敗時，才走原有的網路請求路徑 (這是為了載入完整的媒體/編輯功能)
-    console.log(`❌ [Detail Page] 快取失敗或不存在，執行原有的 GAS 請求。`);
-    
-    // 假設您原有的 GAS 請求邏輯是這樣執行的：
-    const currentUrl = window.location.href; // 原始 URL 中包含了向 GAS 請求所需的參數
-    // 您需要在這裡重建或呼叫您原有的 JSONP 請求函式，例如：
-    // requestGASData(currentUrl); 
-    
-    // 如果您原有的程式碼是透過 URL 參數自動發起請求，請保留該部分。
-    // 如果您需要一個函式來發起請求，則需要在這裡呼叫它。
-    // (由於我們不再有主頁面的快取遮罩，這裡的 GAS 請求是必要的 Fallback)
-}
-
-// 輔助函式：從 URL 中提取 ID
-function getReportIdFromUrl(url) {
-    try {
-        const urlObj = new URL(url);
-        return urlObj.searchParams.get('id'); 
-    } catch (e) {
-        return null; 
-    }
-}
-
     document.addEventListener('DOMContentLoaded', () => {
       const temp = localStorage.getItem('tempReportData');
       if (temp) {
@@ -1004,7 +940,7 @@ setupTranscriptionEditing(currentReportId);
     }
 
     async function loadReportInfoFromSheet(reportId) {
-      const url = `https://script.google.com/macros/s/AKfycbyNEuJq3d8d6GBtrh62DwAo7h3ChJGkmpVwVe0RMbBKIjC6QOKEm61KZXzUhxr-Z35kHg/exec?id=${reportId}&callback=handleResponse`;
+      const url = `https://script.google.com/macros/s/AKfycbzh6qo1Wq0toPEkEZB-U1giT7e0_ScwPzHm6VIAq1RBAPSkc-KJxqEOFqczDNBCdZJYCg/exec?id=${reportId}&callback=handleResponse`;
       const script = document.createElement('script');
       script.src = url;
       document.body.appendChild(script);
@@ -1094,8 +1030,7 @@ setupTranscriptionEditing(currentReportId);
 
     async function loadAudioFromFirebase(reportId) {
   const { ref, getDownloadURL } = window.firebaseStorage;
-  // 🔹 修正順序：將 M4A/MP3 放在前面，避免優先載入 WAV/WEBM 造成問題
-  const exts = ['.m4a', '.mp3', '.webm', '.wav'];
+  const exts = ['.webm', '.mp3', '.wav', '.m4a'];
   for (const ext of exts) {
     try {
       const r = ref(window.firebaseStorage.storage, `reports/${reportId}/recording${ext}`);
@@ -1980,7 +1915,7 @@ function updateTimeLabel(currentTime) {
 
 async function saveTranscriptionToServer(reportId, newText) {
   try {
-    const url = `https://script.google.com/macros/s/AKfycbyNEuJq3d8d6GBtrh62DwAo7h3ChJGkmpVwVe0RMbBKIjC6QOKEm61KZXzUhxr-Z35kHg/exec`;
+    const url = `https://script.google.com/macros/s/AKfycbwRxmFOrf8Lagc3309Qpi9rHX-6cf3Q7CNnWfVW0YEK1QE5EvuDsDWeeGnMX-sNZpsdkg/exec`;
     const params = new URLSearchParams({
   action: 'updateTranscription',
   id: reportId,
