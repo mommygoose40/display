@@ -847,6 +847,70 @@ let currentZoomIndex = 0;
 // 在頂部變數宣告區域添加
 let hasUserZoomed = false;
 
+     // ==========================================================
+// 🚨 請確認：這個新的 JS 區塊是在您的 /detail/index.html 頁面中 🚨
+// ==========================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 頁面載入時，執行資料載入與顯示
+    loadDetailFromCacheOrServer();
+});
+
+function loadDetailFromCacheOrServer() {
+    const reportId = getReportIdFromUrl(window.location.href);
+    if (!reportId) {
+        return showError('URL 中缺少報告 ID 參數。');
+    }
+    
+    const cacheKey = 'reportListCache';
+    const cachedReportsJson = sessionStorage.getItem(cacheKey);
+
+    if (cachedReportsJson) {
+        try {
+            const cachedReports = JSON.parse(cachedReportsJson);
+            const detailData = cachedReports[reportId];
+            
+            // 檢查快取數據是否存在，且是否包含足夠的資料
+            if (detailData && detailData['狀態'] !== undefined) { 
+                console.log(`✅ [Detail Page] 快取命中，使用 Session Storage 數據。`);
+                
+                // ★★★ 核心步驟：將快取數據傳給您現有的渲染函式 ★★★
+                handleResponse(detailData);
+                
+                // 注意：如果快取數據中不包含音頻連結、圖片連結等，
+                // 這些元素在 handleResponse 運行後將會顯示為空/隱藏。
+                // 由於我們不再有 Fallback，您需要確保列表快取數據是足夠的。
+                return; 
+            }
+        } catch (e) {
+            console.error("解析 Session Storage 數據失敗:", e);
+        }
+    }
+
+    // ★★★ Fallback 邏輯：執行原有的 GAS 請求 ★★★
+    // 只有在快取失敗時，才走原有的網路請求路徑 (這是為了載入完整的媒體/編輯功能)
+    console.log(`❌ [Detail Page] 快取失敗或不存在，執行原有的 GAS 請求。`);
+    
+    // 假設您原有的 GAS 請求邏輯是這樣執行的：
+    const currentUrl = window.location.href; // 原始 URL 中包含了向 GAS 請求所需的參數
+    // 您需要在這裡重建或呼叫您原有的 JSONP 請求函式，例如：
+    // requestGASData(currentUrl); 
+    
+    // 如果您原有的程式碼是透過 URL 參數自動發起請求，請保留該部分。
+    // 如果您需要一個函式來發起請求，則需要在這裡呼叫它。
+    // (由於我們不再有主頁面的快取遮罩，這裡的 GAS 請求是必要的 Fallback)
+}
+
+// 輔助函式：從 URL 中提取 ID
+function getReportIdFromUrl(url) {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.searchParams.get('id'); 
+    } catch (e) {
+        return null; 
+    }
+}
+
     document.addEventListener('DOMContentLoaded', () => {
       const temp = localStorage.getItem('tempReportData');
       if (temp) {
@@ -940,7 +1004,7 @@ setupTranscriptionEditing(currentReportId);
     }
 
     async function loadReportInfoFromSheet(reportId) {
-      const url = `https://script.google.com/macros/s/AKfycbzh6qo1Wq0toPEkEZB-U1giT7e0_ScwPzHm6VIAq1RBAPSkc-KJxqEOFqczDNBCdZJYCg/exec?id=${reportId}&callback=handleResponse`;
+      const url = `https://script.google.com/macros/s/AKfycbyNEuJq3d8d6GBtrh62DwAo7h3ChJGkmpVwVe0RMbBKIjC6QOKEm61KZXzUhxr-Z35kHg/exec?id=${reportId}&callback=handleResponse`;
       const script = document.createElement('script');
       script.src = url;
       document.body.appendChild(script);
@@ -1030,7 +1094,8 @@ setupTranscriptionEditing(currentReportId);
 
     async function loadAudioFromFirebase(reportId) {
   const { ref, getDownloadURL } = window.firebaseStorage;
-  const exts = ['.webm', '.mp3', '.wav', '.m4a'];
+  // 🔹 修正順序：將 M4A/MP3 放在前面，避免優先載入 WAV/WEBM 造成問題
+  const exts = ['.m4a', '.mp3', '.webm', '.wav'];
   for (const ext of exts) {
     try {
       const r = ref(window.firebaseStorage.storage, `reports/${reportId}/recording${ext}`);
@@ -1603,69 +1668,85 @@ function handlePinchZoom(newScale, cx, cy) {
     let playbackAudio, rafId;
 
     async function initCustomPlayer(url) {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  // ------------------------------------
+    // 🔔 狀態與 DOM 元素初始化
+    // ------------------------------------
+    const btn = document.getElementById('playBtn');
+    const label = document.getElementById('timeLabel');
+    const bar = document.getElementById('waveFill');
+    const progressBar = document.getElementById('progressBar');
+    
+    // 播放器狀態變數
+    let playing = false;
+    let isDragging = false;
+    let rafId = null;
+    let metadataReady = false;
+    // const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); // 此變數似乎未被使用，可省略或移至全域
 
-  playbackAudio = new Audio(url);
-  playbackAudio.preload = 'auto';
-  playbackAudio.load();
+    // ------------------------------------
+    // 🎵 Audio 元素初始化與預載
+    // ------------------------------------
+    playbackAudio = new Audio(url);
+    playbackAudio.preload = 'auto'; 
+    playbackAudio.load();
+    
+    // 預設禁用播放按鈕，直到元數據載入完成
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
 
-  const btn = document.getElementById('playBtn');
-  const label = document.getElementById('timeLabel');
-  const bar = document.getElementById('waveFill');
-  const progressBar = document.getElementById('progressBar');
-  let playing = false;
-  let isDragging = false;
-  let rafId = null;
-  let metadataReady = false;
-
-  /* === 預載與背景靜音預播放 === */
-  function preloadAndPrimeAudio() {
-    playbackAudio.muted = true;
-    const startPreview = () => {
-      playbackAudio.play()
-        .then(() => {
-          console.log('🎧 預播放中（靜音）');
-          const check = setInterval(() => {
-            if (isFinite(playbackAudio.duration) && playbackAudio.duration > 0) {
-              metadataReady = true;
-              clearInterval(check);
-              playbackAudio.pause();
-              playbackAudio.currentTime = 0;
-              playbackAudio.muted = false;
-              console.log('✅ metadata ready via 預播放:', playbackAudio.duration);
-            }
-          }, 200);
-        })
-        .catch(() => console.warn('🔇 無法自動預播放，將等待使用者互動'));
-    };
-    // 某些瀏覽器要等互動後再啟動
-    document.addEventListener('click', startPreview, { once: true });
-    // 若允許自動播放，立即試一次
-    startPreview();
-  }
-  preloadAndPrimeAudio();
-
-  /* === 播放控制 === */
-  btn.onclick = async () => {
-    if (!playing) {
-      await playbackAudio.play();
-      setPauseIcon();
-      playing = true;
-      updateProgress();
-    } else {
-      playbackAudio.pause();
-      setPlayIcon();
-      playing = false;
-      cancelAnimationFrame(rafId);
+    // ------------------------------------
+    // ✅ Metadata 載入與播放器啟用邏輯
+    // ------------------------------------
+    function enablePlayer() {
+        if (metadataReady) return; // 避免重複執行
+        
+        metadataReady = true;
+        console.log('✅ Metadata ready. Duration:', playbackAudio.duration);
+        
+        // 啟用播放按鈕
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        
+        // 初始化時間標籤顯示 0:00 / 總時長
+        updateTimeLabel(0); 
     }
-  };
 
-  playbackAudio.onended = () => {
-    setPlayIcon();
-    playing = false;
-    cancelAnimationFrame(rafId);
-    bar.style.width = '100%';
-  };
+    // 1. 透過事件監聽：當瀏覽器載入音訊元數據時觸發
+    playbackAudio.addEventListener('loadedmetadata', enablePlayer);
+    
+    // 2. 備用檢查：如果音訊已在快取中，loadedmetadata 可能不會觸發，檢查 readyState
+    if (playbackAudio.readyState >= 1) {
+        enablePlayer();
+    }
+    
+    // ------------------------------------
+    // ▶️ 播放控制邏輯
+    // ------------------------------------
+    btn.onclick = async () => {
+        if (!metadataReady) return; // 元數據未載入，忽略點擊
+
+        if (!playing) {
+            // 確保解除靜音，如果先前有靜音處理的話 (雖然這裡已移除預播靜音)
+            // playbackAudio.muted = false; 
+            await playbackAudio.play();
+            setPauseIcon();
+            playing = true;
+            updateProgress(); // 開始更新進度
+        } else {
+            playbackAudio.pause();
+            setPlayIcon();
+            playing = false;
+            cancelAnimationFrame(rafId);
+        }
+    };
+
+    playbackAudio.onended = () => {
+        setPlayIcon();
+        playing = false;
+        cancelAnimationFrame(rafId);
+        bar.style.width = '100%';
+        updateTimeLabel(0); // 播放結束後重設時間顯示
+    };
 
   /* === 更新進度條 === */
   function updateProgress() {
@@ -1686,11 +1767,24 @@ function handlePinchZoom(newScale, cx, cy) {
       : playbackAudio.duration || 0;
   }
 
-  function updateTimeLabel(currentTime) {
-    const min = Math.floor(currentTime / 60);
-    const sec = Math.floor(currentTime % 60).toString().padStart(2, '0');
-    label.textContent = `${min}:${sec}`;
+/* === 修改：增加總時長顯示，並顯示載入狀態 === */
+function updateTimeLabel(currentTime) {
+  const duration = getDuration();
+  const label = document.getElementById('timeLabel');
+  
+  const min = Math.floor(currentTime / 60);
+  const sec = Math.floor(currentTime % 60).toString().padStart(2, '0');
+  
+  if (duration > 0) {
+      const d_min = Math.floor(duration / 60);
+      const d_sec = Math.floor(duration % 60).toString().padStart(2, '0');
+      // 顯示當前時間 / 總時長
+      label.textContent = `${min}:${sec} / ${d_min}:${d_sec}`; 
+  } else {
+      // 載入中時的提示
+      label.textContent = `載入中... ${min}:${sec}`; 
   }
+}
 
   function setPauseIcon() {
     btn.innerHTML = `<div style="
@@ -1728,9 +1822,10 @@ function handlePinchZoom(newScale, cx, cy) {
 
   // 滑鼠按下開始拖曳
   progressBar.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    const time = getTimeFromPosition(e.clientX);
-    setAudioTime(time);
+    if (!metadataReady) return; // 元數據未載入時禁用拖曳
+  isDragging = true;
+  const time = getTimeFromPosition(e.clientX);
+  setAudioTime(time);
 
     // 添加全局事件監聽
     const handleMouseMove = (moveEvent) => {
@@ -1756,22 +1851,52 @@ function handlePinchZoom(newScale, cx, cy) {
   });
 
   // 點擊進度條跳轉
-  progressBar.addEventListener('click', (e) => {
-    const time = getTimeFromPosition(e.clientX);
-    setAudioTime(time);
+    progressBar.addEventListener('click', (e) => {
+        if (!metadataReady) return;
+        const time = getTimeFromPosition(e.clientX);
+        setAudioTime(time);
 
-    // 如果原本在播放狀態，確保進度條繼續更新
-    if (playing) {
-      updateProgress();
-    }
-  });
+        // 如果原本在播放狀態，確保進度條繼續更新
+        if (playing) {
+            updateProgress();
+        }
+    });
 
-  // 拖曳時暫停自動更新，避免衝突
-  progressBar.addEventListener('mousedown', () => {
-    if (playing) {
-      cancelAnimationFrame(rafId);
-    }
-  });
+  // 滑鼠按下開始拖曳
+    progressBar.addEventListener('mousedown', (e) => {
+        if (!metadataReady) return; 
+        isDragging = true;
+        
+        // 如果在播放中，暫停自動更新
+        if (playing) {
+            cancelAnimationFrame(rafId);
+        }
+        
+        const time = getTimeFromPosition(e.clientX);
+        setAudioTime(time);
+
+        // 添加全局事件監聽 (handleMouseMove, handleMouseUp 保持不變)
+        const handleMouseMove = (moveEvent) => {
+            if (isDragging) {
+                const newTime = getTimeFromPosition(moveEvent.clientX);
+                setAudioTime(newTime);
+            }
+        };
+
+        const handleMouseUp = () => {
+            isDragging = false;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+
+            // 如果原本在播放狀態，繼續播放
+            if (playing) {
+                updateProgress();
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    });
 }
 
     function handleBack() {
@@ -1855,7 +1980,7 @@ function handlePinchZoom(newScale, cx, cy) {
 
 async function saveTranscriptionToServer(reportId, newText) {
   try {
-    const url = `https://script.google.com/macros/s/AKfycbwRxmFOrf8Lagc3309Qpi9rHX-6cf3Q7CNnWfVW0YEK1QE5EvuDsDWeeGnMX-sNZpsdkg/exec`;
+    const url = `https://script.google.com/macros/s/AKfycbyNEuJq3d8d6GBtrh62DwAo7h3ChJGkmpVwVe0RMbBKIjC6QOKEm61KZXzUhxr-Z35kHg/exec`;
     const params = new URLSearchParams({
   action: 'updateTranscription',
   id: reportId,
